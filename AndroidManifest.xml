@@ -48,5 +48,8 @@
             android:name=".PhotoViewActivity"
             android:exported="false"
             android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen" />
+            <activity android:name=".AboutActivity" android:exported="false" />
+        <activity android:name=".EggActivity" android:exported="false"
+            android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen" />
     </application>
 </manifest>

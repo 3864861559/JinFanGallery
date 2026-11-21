@@ -5,4 +5,29 @@
     <string name="photos">照片</string>
     <string name="albums">相册</string>
     <string name="permission_rationale">需要读取图片权限才能展示图库</string>
+    <string name="more">更多</string>
+    <string name="about_title">关于金凡图库</string>
+    <string name="about_intro">如果你一样和我讨厌金凡的垃圾系统，那就快和我一起用这个图库吧。</string>
+    <string name="about_desc">金凡图库</string>
+    <string name="about_features_title">功能介绍</string>
+    <string name="about_features">一个不想被系统绑架的图库。
+
+· 按日期分组，打开就是今天拍的那些，不做多余扫描
+· 缩略图走后台解码 + 内存缓存，滑起来不挑设备
+· 长按跟手预览，松手自己飞回原位；点空白直接收起
+· 短按进全屏看图，点一下或返回键就退
+· 申请 120Hz，设备不支持会自动降级
+
+说人话：快、干净、不折腾。
+（以上这段是大肥鱼写的——图库不负责做饭，但我保证它不偷吃你的电。）</string>
+    <string name="about_changelog_title">版本日志</string>
+    <string name="about_changelog">v1.0　初版：日期分组网格、缩略图缓存、长按 3D Touch 预览。
+
+v1.1　新增短按看大图；欢迎页只在首次启动时出现。
+
+v1.2　换成彩色花瓣图标；预览支持点空白收起；移除底部悬浮栏；欢迎页改为首次或升级后显示；首屏预加载优化。
+
+v1.3　新增右上角「更多」入口与关于页；长按关于页图标有彩蛋；后台返回不再重复播放欢迎页。
+
+v1.4　关于页加入功能介绍与完整版本日志；文字由大肥鱼撰写。</string>
 </resources>

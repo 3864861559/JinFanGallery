@@ -36,6 +36,7 @@ public class PreviewHelper {
     private final int[] sourceLocation = new int[2];
     private float previewSize;
     private boolean previewing;
+    private boolean dragging;
 
     public PreviewHelper(Activity activity, FrameLayout layer) {
         this.activity = activity;
@@ -112,14 +113,25 @@ public class PreviewHelper {
     private boolean onLayerTouch(View v, MotionEvent event) {
         if (preview == null) return false;
         switch (event.getAction()) {
+            case MotionEvent.ACTION_DOWN:
+                // 点在预览之外 = 点空白，直接收起，不跟手
+                if (!isInsidePreview(event.getRawX(), event.getRawY())) {
+                    dragging = false;
+                    finish();
+                } else {
+                    dragging = true;
+                }
+                return true;
             case MotionEvent.ACTION_MOVE:
+                if (!dragging) return true;
                 // 跟手：仅移动 RenderNode 变换矩阵，不重绘
                 preview.setX(event.getRawX() - previewSize / 2f);
                 preview.setY(event.getRawY() - previewSize / 2f);
                 return true;
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_CANCEL:
-                finish();
+                if (dragging) finish();
+                dragging = false;
                 return true;
             default:
                 return false;
@@ -157,6 +169,12 @@ public class PreviewHelper {
         }
     }
 
+    /** 手指是否落在预览图范围内。 */
+    private boolean isInsidePreview(float rawX, float rawY) {
+        float x = preview.getX(), y = preview.getY();
+        return rawX >= x && rawX <= x + previewSize && rawY >= y && rawY <= y + previewSize;
+    }
+
     private void release() {
         if (preview != null) {
             layer.removeView(preview);
@@ -169,6 +187,7 @@ public class PreviewHelper {
         }
         source = null;
         previewing = false;
+        dragging = false;
         layer.setOnTouchListener(null);
     }
 

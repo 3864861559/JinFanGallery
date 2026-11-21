@@ -21,13 +21,13 @@ public class SplashActivity extends Activity {
 
         // 欢迎页只显示一次：第二次启动直接进图库。
         android.content.SharedPreferences sp = getSharedPreferences("launch", MODE_PRIVATE);
-        if (sp.getBoolean("welcomed", false)) {
+        if (sp.getInt("welcomed_version", 0) >= currentVersionCode()) {
             startActivity(new Intent(this, MainGalleryActivity.class));
             overridePendingTransition(0, 0);
             finish();
             return;
         }
-        sp.edit().putBoolean("welcomed", true).apply();
+        sp.edit().putInt("welcomed_version", currentVersionCode()).apply();
         setContentView(R.layout.activity_splash);
 
         mainHandler.postDelayed(() -> {
@@ -35,6 +35,15 @@ public class SplashActivity extends Activity {
             overridePendingTransition(0, 0);
             finish();
         }, SPLASH_DURATION);
+    }
+
+    /** 当前 versionCode：升级后欢迎页会再出现一次。 */
+    private int currentVersionCode() {
+        try {
+            return getPackageManager().getPackageInfo(getPackageName(), 0).versionCode;
+        } catch (Exception e) {
+            return 0;
+        }
     }
 
     @Override

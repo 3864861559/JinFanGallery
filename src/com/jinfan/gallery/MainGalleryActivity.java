@@ -58,6 +58,9 @@ public class MainGalleryActivity extends Activity
         FrameLayout previewLayer = findViewById(R.id.preview_layer);
         previewHelper = new PreviewHelper(this, previewLayer);
 
+        findViewById(R.id.btn_more).setOnClickListener(v ->
+                startActivity(new android.content.Intent(this, AboutActivity.class)));
+
         setupRecyclerView();
 
         if (hasPermission()) {
@@ -86,6 +89,11 @@ public class MainGalleryActivity extends Activity
         adapter = new GalleryAdapter(items, thumbLoader, this,
                 entry -> startActivity(PhotoViewActivity.intentFor(this, entry.uri)));
         recyclerView.setAdapter(adapter);
+
+        // 首屏预取 6 个 item，滚动更跟手
+        if (recyclerView.getLayoutManager() instanceof GridLayoutManager) {
+            ((GridLayoutManager) recyclerView.getLayoutManager()).setInitialPrefetchItemCount(SPAN_COUNT * 2);
+        }
     }
 
     /** 向 SurfaceFlinger 申请高刷新率，最终刷新率由显示驱动决定。 */
