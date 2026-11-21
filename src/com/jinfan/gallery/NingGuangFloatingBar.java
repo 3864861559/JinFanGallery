@@ -79,7 +79,7 @@ public class NingGuangFloatingBar extends FrameLayout {
         LinearLayout row = new LinearLayout(getContext());
         row.setOrientation(LinearLayout.HORIZONTAL);
         row.setGravity(Gravity.CENTER);
-        row.setPadding(24 * density, 0, 24 * density, 0);
+        row.setPadding((int) (24 * density), 0, (int) (24 * density), 0);
 
         ImageView photos = new ImageView(getContext());
         photos.setImageResource(R.drawable.ic_photo);
