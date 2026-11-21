@@ -1,6 +1,7 @@
 package com.jinfan.gallery;
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.LoaderManager;
 import android.content.AsyncTaskLoader;
 import android.content.Context;
