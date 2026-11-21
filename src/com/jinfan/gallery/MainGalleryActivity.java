@@ -83,7 +83,8 @@ public class MainGalleryActivity extends Activity
         recyclerView.setNestedScrollingEnabled(true);
         recyclerView.setScrollingTouchSlop(RecyclerView.TOUCH_SLOP_DEFAULT);
 
-        adapter = new GalleryAdapter(items, thumbLoader, this);
+        adapter = new GalleryAdapter(items, thumbLoader, this,
+                entry -> startActivity(PhotoViewActivity.intentFor(this, entry.uri)));
         recyclerView.setAdapter(adapter);
     }
 

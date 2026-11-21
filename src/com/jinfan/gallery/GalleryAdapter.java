@@ -24,16 +24,24 @@ public class GalleryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         void onPhotoLongPress(ImageView imageView, MediaStoreHelper.PhotoEntry entry);
     }
 
+    /** 短按：打开全屏看图。 */
+    public interface OnPhotoClickListener {
+        void onPhotoClick(MediaStoreHelper.PhotoEntry entry);
+    }
+
     private final List<Object> items;
     private final MediaStoreHelper.ThumbnailLoader loader;
     private final OnPhotoLongPressListener longPressListener;
+    private final OnPhotoClickListener clickListener;
 
     public GalleryAdapter(List<Object> items,
                           MediaStoreHelper.ThumbnailLoader loader,
-                          OnPhotoLongPressListener listener) {
+                          OnPhotoLongPressListener listener,
+                          OnPhotoClickListener clickListener) {
         this.items = items;
         this.loader = loader;
         this.longPressListener = listener;
+        this.clickListener = clickListener;
         setHasStableIds(true);
     }
 
@@ -81,6 +89,10 @@ public class GalleryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
         ph.image.setTag(entry.id);
         bindThumbnail(ph.image, entry.id);
+
+        ph.itemView.setOnClickListener(v -> {
+            if (clickListener != null) clickListener.onPhotoClick(entry);
+        });
 
         ph.itemView.setOnLongClickListener(v -> {
             if (longPressListener != null) {

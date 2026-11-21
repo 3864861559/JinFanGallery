@@ -18,6 +18,16 @@ public class SplashActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // 欢迎页只显示一次：第二次启动直接进图库。
+        android.content.SharedPreferences sp = getSharedPreferences("launch", MODE_PRIVATE);
+        if (sp.getBoolean("welcomed", false)) {
+            startActivity(new Intent(this, MainGalleryActivity.class));
+            overridePendingTransition(0, 0);
+            finish();
+            return;
+        }
+        sp.edit().putBoolean("welcomed", true).apply();
         setContentView(R.layout.activity_splash);
 
         mainHandler.postDelayed(() -> {
