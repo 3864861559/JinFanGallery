@@ -1,0 +1,11 @@
+android_app {
+    name: "JinFanGallery",
+    srcs: ["src/**/*.java"],
+    resource_dirs: ["res"],
+    platform_apis: true,
+    certificate: "platform",
+    privileged: true,
+    optimize: {
+        enabled: true,
+    },
+}

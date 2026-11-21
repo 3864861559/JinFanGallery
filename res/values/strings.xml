@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">金凡图库</string>
+    <string name="welcome">欢迎使用金凡图库</string>
+    <string name="photos">照片</string>
+    <string name="albums">相册</string>
+    <string name="permission_rationale">需要读取图片权限才能展示图库</string>
+</resources>
