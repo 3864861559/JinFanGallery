@@ -45,16 +45,11 @@ v1.6　图标折腾了四版又用回第一版——某位天天挖苦我的人�
     <string name="video_pause">暂停</string>
     <string name="video_mute">静音</string>
     <string name="video_send">发送</string>
-    <string name="video_clip">剪辑</string>
-    <string name="video_fav">收藏</string>
     <string name="video_delete">删除</string>
     <string name="video_more">更多</string>
     <string name="video_delete_confirm">删除这段视频？</string>
     <string name="video_delete_done">已删除</string>
     <string name="video_delete_failed">删除失败</string>
-    <string name="video_clip_todo">剪辑还在做，先看片</string>
-    <string name="video_fav_added">已收藏</string>
-    <string name="video_fav_removed">已取消收藏</string>
     <string name="video_open_failed">打不开这段视频</string>
     <string name="video_details">详情</string>
     <string name="video_open_with">用其他应用打开</string>

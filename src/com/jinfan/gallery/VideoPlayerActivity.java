@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ContentResolver;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
@@ -20,14 +19,11 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.PopupMenu;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * 全屏播放：极简播放条 + 一条功能栏（发送 / 剪辑 / 收藏 / 删除 / 更多）。
@@ -47,7 +43,6 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
     private ImageButton playBtn;
     private ImageButton muteBtn;
     private SeekBar seekBar;
-    private ImageView favIcon;
     private TextView dateView;
 
     private MediaPlayer player;
@@ -89,7 +84,6 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
         playBtn = findViewById(R.id.btn_video_play);
         muteBtn = findViewById(R.id.btn_video_mute);
         seekBar = findViewById(R.id.seek_video);
-        favIcon = findViewById(R.id.ic_video_fav);
         dateView = findViewById(R.id.tv_video_date);
 
         String title = getIntent().getStringExtra(EXTRA_TITLE);
@@ -103,9 +97,6 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
         playBtn.setOnClickListener(v -> togglePlay());
         muteBtn.setOnClickListener(v -> toggleMute());
         findViewById(R.id.act_video_send).setOnClickListener(v -> share());
-        findViewById(R.id.act_video_clip).setOnClickListener(v ->
-                Toast.makeText(this, R.string.video_clip_todo, Toast.LENGTH_SHORT).show());
-        findViewById(R.id.act_video_fav).setOnClickListener(v -> toggleFavorite());
         findViewById(R.id.act_video_delete).setOnClickListener(v -> confirmDelete());
         findViewById(R.id.act_video_more).setOnClickListener(this::showMore);
 
@@ -118,7 +109,6 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
         });
 
         surfaceView.getHolder().addCallback(this);
-        refreshFavIcon();
     }
 
     // ------------------------------------------------------------ 播放器
@@ -238,34 +228,6 @@ public class VideoPlayerActivity extends Activity implements SurfaceHolder.Callb
         } catch (Exception e) {
             Toast.makeText(this, R.string.video_open_failed, Toast.LENGTH_SHORT).show();
         }
-    }
-
-    private Set<String> favorites() {
-        SharedPreferences sp = getSharedPreferences(PREFS, MODE_PRIVATE);
-        return new HashSet<>(sp.getStringSet(KEY_FAV, new HashSet<>()));
-    }
-
-    private void toggleFavorite() {
-        Set<String> favs = favorites();
-        boolean added;
-        if (favs.contains(uri.toString())) {
-            favs.remove(uri.toString());
-            added = false;
-        } else {
-            favs.add(uri.toString());
-            added = true;
-        }
-        getSharedPreferences(PREFS, MODE_PRIVATE).edit().putStringSet(KEY_FAV, favs).apply();
-        refreshFavIcon();
-        Toast.makeText(this, added ? R.string.video_fav_added : R.string.video_fav_removed,
-                Toast.LENGTH_SHORT).show();
-    }
-
-    private void refreshFavIcon() {
-        boolean fav = favorites().contains(uri.toString());
-        favIcon.setImageResource(fav
-                ? R.drawable.ic_video_heart_filled
-                : R.drawable.ic_video_heart);
     }
 
     private void confirmDelete() {

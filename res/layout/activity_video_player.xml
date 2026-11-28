@@ -110,31 +110,9 @@
                 <TextView style="@style/VideoActionLabel" android:text="@string/video_send" />
             </LinearLayout>
 
-            <LinearLayout
-                android:id="@+id/act_video_clip"
-                style="@style/VideoActionItem">
+            /LinearLayout>
 
-                <ImageView
-                    style="@style/VideoActionIcon"
-                    android:src="@drawable/ic_video_clip" />
-
-                <TextView
-                    style="@style/VideoActionLabel"
-                    android:text="@string/video_clip"
-                    android:textColor="@color/video_icon_dim" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/act_video_fav"
-                style="@style/VideoActionItem">
-
-                <ImageView
-                    android:id="@+id/ic_video_fav"
-                    style="@style/VideoActionIcon"
-                    android:src="@drawable/ic_video_heart" />
-
-                <TextView style="@style/VideoActionLabel" android:text="@string/video_fav" />
-            </LinearLayout>
+            /LinearLayout>
 
             <LinearLayout
                 android:id="@+id/act_video_delete"
