@@ -19,6 +19,17 @@ public class ActivationActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // 只在第一次启动（或升级后第一次）展示引导页
+        android.content.SharedPreferences sp = getSharedPreferences("launch", MODE_PRIVATE);
+        if (sp.getInt("activated_version", 0) >= currentVersionCode()) {
+            startActivity(new Intent(this, SplashActivity.class));
+            overridePendingTransition(0, 0);
+            finish();
+            return;
+        }
+        sp.edit().putInt("activated_version", currentVersionCode()).apply();
+
         setContentView(R.layout.activity_activation);
 
         View fab = findViewById(R.id.fab_activate);
@@ -49,6 +60,14 @@ public class ActivationActivity extends Activity {
 
             mainHandler.postDelayed(this::enterSplash, 260);
         });
+    }
+
+    private int currentVersionCode() {
+        try {
+            return getPackageManager().getPackageInfo(getPackageName(), 0).versionCode;
+        } catch (Exception e) {
+            return 0;
+        }
     }
 
     private void enterSplash() {

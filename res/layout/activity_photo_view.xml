@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/photo_view_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/video_bg">
+
+    <ImageView
+        android:id="@+id/iv_photo_full"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="matrix"
+        android:contentDescription="@string/photos" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="64dp"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="24dp"
+        android:background="@drawable/bg_video_pill"
+        android:orientation="horizontal"
+        android:paddingHorizontal="10dp">
+
+        <LinearLayout
+            android:id="@+id/act_photo_delete"
+            style="@style/VideoActionItem"
+            android:layout_width="96dp">
+
+            <ImageView
+                style="@style/VideoActionIcon"
+                android:src="@drawable/ic_video_delete" />
+
+            <TextView style="@style/VideoActionLabel" android:text="@string/video_delete" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/act_photo_more"
+            style="@style/VideoActionItem"
+            android:layout_width="96dp">
+
+            <ImageView
+                style="@style/VideoActionIcon"
+                android:src="@drawable/ic_video_more" />
+
+            <TextView style="@style/VideoActionLabel" android:text="@string/video_more" />
+        </LinearLayout>
+    </LinearLayout>
+</FrameLayout>

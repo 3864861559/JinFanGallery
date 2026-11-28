@@ -1,7 +1,11 @@
 package com.jinfan.gallery;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Intent;
+import android.os.Build;
+import android.view.View;
+import android.widget.PopupMenu;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
@@ -39,10 +43,8 @@ public class PhotoViewActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        imageView = new ImageView(this);
-        imageView.setBackgroundColor(0xFF000000);
-        imageView.setScaleType(ImageView.ScaleType.MATRIX);
-        setContentView(imageView);
+        setContentView(R.layout.activity_photo_view);
+        imageView = findViewById(R.id.iv_photo_full);
 
         String s = getIntent().getStringExtra(EXTRA_URI);
         if (s == null) { finish(); return; }
@@ -91,6 +93,86 @@ public class PhotoViewActivity extends Activity {
         });
 
         imageView.post(this::fitCenter);
+
+        findViewById(R.id.act_photo_delete).setOnClickListener(v -> confirmDelete());
+        findViewById(R.id.act_photo_more).setOnClickListener(this::showMore);
+    }
+
+    /** 底栏：删除 */
+    private void confirmDelete() {
+        new AlertDialog.Builder(this)
+                .setMessage(R.string.photo_delete_confirm)
+                .setNegativeButton(android.R.string.cancel, null)
+                .setPositiveButton(R.string.video_delete, (d, w) -> deletePhoto())
+                .show();
+    }
+
+    private void deletePhoto() {
+        Uri target = Uri.parse(getIntent().getStringExtra(EXTRA_URI));
+        try {
+            int n = getContentResolver().delete(target, null, null);
+            toastAndFinish(n > 0);
+        } catch (SecurityException se) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                try {
+                    android.app.RecoverableSecurityException rse =
+                            (android.app.RecoverableSecurityException) se;
+                    startIntentSenderForResult(
+                            rse.getUserAction().getActionIntent().getIntentSender(), 9, null, 0, 0, 0);
+                    return;
+                } catch (Exception ignored) { }
+            }
+            toastAndFinish(false);
+        } catch (Exception e) {
+            toastAndFinish(false);
+        }
+    }
+
+    private void toastAndFinish(boolean ok) {
+        Toast.makeText(this, ok ? R.string.video_delete_done : R.string.video_delete_failed,
+                Toast.LENGTH_SHORT).show();
+        if (ok) finish();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 9 && resultCode == RESULT_OK) finish();
+    }
+
+    /** 底栏：更多 */
+    private void showMore(View anchor) {
+        PopupMenu menu = new PopupMenu(this, anchor);
+        menu.getMenu().add(0, 1, 0, R.string.video_details);
+        menu.getMenu().add(0, 2, 1, R.string.video_open_with);
+        menu.setOnMenuItemClickListener(item -> {
+            if (item.getItemId() == 1) showDetails();
+            else openWith();
+            return true;
+        });
+        menu.show();
+    }
+
+    private void showDetails() {
+        String path = getIntent().getStringExtra(EXTRA_URI);
+        String msg = "文件：" + (path == null ? "" : Uri.parse(path).getLastPathSegment())
+                + "\n尺寸：" + width + "×" + height;
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.video_details)
+                .setMessage(msg)
+                .setPositiveButton(android.R.string.ok, null)
+                .show();
+    }
+
+    private void openWith() {
+        Intent i = new Intent(Intent.ACTION_VIEW);
+        i.setDataAndType(Uri.parse(getIntent().getStringExtra(EXTRA_URI)), "image/*");
+        i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        try {
+            startActivity(i);
+        } catch (Exception e) {
+            Toast.makeText(this, R.string.video_open_failed, Toast.LENGTH_SHORT).show();
+        }
     }
 
     /** 初始按屏幕适配，居中显示。 */
