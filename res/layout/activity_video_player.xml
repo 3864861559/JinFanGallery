@@ -76,11 +76,13 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:progressBackgroundTint="@color/video_track"
-                android:progressTint="@color/video_icon"
-                android:thumbTint="@color/video_icon"
+                android:maxHeight="3dp"
+                android:minHeight="3dp"
+                android:progressDrawable="@drawable/seek_video_track"
+                android:thumb="@drawable/seek_video_thumb"
+                android:thumbOffset="6dp"
                 android:splitTrack="false"
-                android:paddingHorizontal="6dp" />
+                android:paddingHorizontal="8dp" />
 
             <ImageButton
                 android:id="@+id/btn_video_mute"
