@@ -87,7 +87,10 @@ public class MainGalleryActivity extends Activity
         recyclerView.setScrollingTouchSlop(RecyclerView.TOUCH_SLOP_DEFAULT);
 
         adapter = new GalleryAdapter(items, thumbLoader, this,
-                entry -> startActivity(PhotoViewActivity.intentFor(this, entry.uri)));
+                entry -> startActivity(entry.video
+                        ? VideoPlayerActivity.intentFor(this, entry.uri,
+                                MediaStoreHelper.labelOf(entry.dateTaken))
+                        : PhotoViewActivity.intentFor(this, entry.uri)));
         recyclerView.setAdapter(adapter);
 
         // 首屏预取 6 个 item，滚动更跟手
@@ -117,6 +120,8 @@ public class MainGalleryActivity extends Activity
     private boolean hasPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             return checkSelfPermission(Manifest.permission.READ_MEDIA_IMAGES)
+                    == PackageManager.PERMISSION_GRANTED
+                    && checkSelfPermission(Manifest.permission.READ_MEDIA_VIDEO)
                     == PackageManager.PERMISSION_GRANTED;
         }
         return checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE)
@@ -124,10 +129,14 @@ public class MainGalleryActivity extends Activity
     }
 
     private void requestRequiredPermission() {
-        String perm = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
-                ? Manifest.permission.READ_MEDIA_IMAGES
-                : Manifest.permission.READ_EXTERNAL_STORAGE;
-        requestPermissions(new String[]{perm}, REQ_PERMISSION);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            requestPermissions(new String[]{
+                    Manifest.permission.READ_MEDIA_IMAGES,
+                    Manifest.permission.READ_MEDIA_VIDEO
+            }, REQ_PERMISSION);
+        } else {
+            requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, REQ_PERMISSION);
+        }
     }
 
     @Override

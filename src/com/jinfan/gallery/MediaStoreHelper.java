@@ -38,18 +38,32 @@ public final class MediaStoreHelper {
             MediaStore.Images.Media.BUCKET_DISPLAY_NAME
     };
 
-    /** 照片条目 */
+    /** 一条媒体：图片或视频 */
     public static final class PhotoEntry {
         public final long id;
         public final Uri uri;
         public final long dateTaken;
         public final String dateKey;
+        public final boolean video;
+        public final long durationMs;
 
         public PhotoEntry(long id, Uri uri, long dateTaken, String dateKey) {
+            this(id, uri, dateTaken, dateKey, false, 0);
+        }
+
+        public PhotoEntry(long id, Uri uri, long dateTaken, String dateKey,
+                          boolean video, long durationMs) {
             this.id = id;
             this.uri = uri;
             this.dateTaken = dateTaken;
             this.dateKey = dateKey;
+            this.video = video;
+            this.durationMs = durationMs;
+        }
+
+        /** 图片和视频的 _ID 会撞，缓存键要带类型 */
+        public String cacheKey() {
+            return (video ? "v" : "i") + id;
         }
     }
 
@@ -78,57 +92,91 @@ public final class MediaStoreHelper {
     }
 
     /**
-     * 读取全部图片元数据，按日期降序组装成 header + photo 混合列表。
+     * 读取全部图片 + 视频元数据，按日期降序组装成 header + 媒体 混合列表。
      * 注意：此方法在 Loader 异步线程中调用。
      */
     public static List<Object> loadItems(Context context) {
-        List<Object> items = new ArrayList<>();
         ContentResolver resolver = context.getContentResolver();
+        List<PhotoEntry> all = new ArrayList<>();
+        all.addAll(queryImages(resolver));
+        all.addAll(queryVideos(resolver));
+        java.util.Collections.sort(all, (a, b) -> Long.compare(b.dateTaken, a.dateTaken));
+
+        List<Object> items = new ArrayList<>();
+        String currentKey = null;
+        List<PhotoEntry> group = new ArrayList<>();
+        for (PhotoEntry e : all) {
+            if (currentKey == null) currentKey = e.dateKey;
+            if (!e.dateKey.equals(currentKey)) {
+                items.add(new HeaderEntry(labelOf(group.get(0).dateTaken), group.size()));
+                items.addAll(group);
+                group.clear();
+                currentKey = e.dateKey;
+            }
+            group.add(e);
+        }
+        if (!group.isEmpty()) {
+            items.add(new HeaderEntry(labelOf(group.get(0).dateTaken), group.size()));
+            items.addAll(group);
+        }
+        return items;
+    }
+
+    private static List<PhotoEntry> queryImages(ContentResolver resolver) {
+        List<PhotoEntry> out = new ArrayList<>();
         Cursor cursor = resolver.query(
                 MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
                 PROJECTION, null, null,
                 MediaStore.Images.Media.DATE_TAKEN + " DESC");
-
-        if (cursor == null) return items;
-
+        if (cursor == null) return out;
         try {
             int idCol = cursor.getColumnIndexOrThrow(MediaStore.Images.Media._ID);
             int takenCol = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATE_TAKEN);
-
-            String currentKey = null;
-            int groupCount = 0;
-            List<PhotoEntry> groupPhotos = new ArrayList<>();
-
             while (cursor.moveToNext()) {
                 long id = cursor.getLong(idCol);
                 long taken = cursor.getLong(takenCol);
                 if (taken <= 0) taken = System.currentTimeMillis();
-                String key = keyOf(taken);
-
-                if (currentKey == null) {
-                    currentKey = key;
-                }
-                if (!key.equals(currentKey)) {
-                    items.add(new HeaderEntry(labelOf(groupPhotos.get(0).dateTaken), groupCount));
-                    items.addAll(groupPhotos);
-                    groupPhotos.clear();
-                    groupCount = 0;
-                    currentKey = key;
-                }
-
                 Uri uri = Uri.withAppendedPath(
                         MediaStore.Images.Media.EXTERNAL_CONTENT_URI, String.valueOf(id));
-                groupPhotos.add(new PhotoEntry(id, uri, taken, key));
-                groupCount++;
-            }
-            if (!groupPhotos.isEmpty()) {
-                items.add(new HeaderEntry(labelOf(groupPhotos.get(0).dateTaken), groupCount));
-                items.addAll(groupPhotos);
+                out.add(new PhotoEntry(id, uri, taken, keyOf(taken)));
             }
         } finally {
             cursor.close();
         }
-        return items;
+        return out;
+    }
+
+    private static List<PhotoEntry> queryVideos(ContentResolver resolver) {
+        List<PhotoEntry> out = new ArrayList<>();
+        Cursor cursor = null;
+        try {
+            cursor = resolver.query(
+                    MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+                    new String[]{
+                            MediaStore.Video.Media._ID,
+                            MediaStore.Video.Media.DATE_MODIFIED,
+                            MediaStore.Video.Media.DURATION
+                    }, null, null,
+                    MediaStore.Video.Media.DATE_MODIFIED + " DESC");
+            if (cursor == null) return out;
+            int idCol = cursor.getColumnIndexOrThrow(MediaStore.Video.Media._ID);
+            int modCol = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATE_MODIFIED);
+            int durCol = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION);
+            while (cursor.moveToNext()) {
+                long id = cursor.getLong(idCol);
+                long modified = cursor.getLong(modCol) * 1000L;
+                if (modified <= 0) modified = System.currentTimeMillis();
+                long duration = cursor.getLong(durCol);
+                Uri uri = Uri.withAppendedPath(
+                        MediaStore.Video.Media.EXTERNAL_CONTENT_URI, String.valueOf(id));
+                out.add(new PhotoEntry(id, uri, modified, keyOf(modified), true, duration));
+            }
+        } catch (Exception ignored) {
+            // 老系统或没有视频列时静默降级为只有图片
+        } finally {
+            if (cursor != null) cursor.close();
+        }
+        return out;
     }
 
     /**
@@ -158,21 +206,21 @@ public final class MediaStoreHelper {
             };
         }
 
-        public Bitmap getCached(long id) {
-            return cache.get(String.valueOf(id));
+        public Bitmap getCached(PhotoEntry entry) {
+            return cache.get(entry.cacheKey());
         }
 
-        public void load(final ImageView target, final long id) {
-            Bitmap cached = getCached(id);
+        public void load(final ImageView target, final PhotoEntry entry) {
+            Bitmap cached = getCached(entry);
             if (cached != null) {
                 target.setImageBitmap(cached);
                 return;
             }
             target.setImageDrawable(null);
             workerHandler.post(() -> {
-                final Bitmap b = decodeThumbnail(id);
+                final Bitmap b = decodeThumbnail(entry);
                 if (b != null) {
-                    cache.put(String.valueOf(id), b);
+                    cache.put(entry.cacheKey(), b);
                 }
                 mainHandler.post(() -> {
                     if (target != null && b != null) {
@@ -182,8 +230,16 @@ public final class MediaStoreHelper {
             });
         }
 
-        private Bitmap decodeThumbnail(long id) {
-            Bitmap thumb = MediaStore.Images.Thumbnails.getThumbnail(
+        private Bitmap decodeThumbnail(PhotoEntry entry) {
+            long id = entry.id;
+            Bitmap thumb;
+            if (entry.video) {
+                thumb = MediaStore.Video.Thumbnails.getThumbnail(
+                        appContext.getContentResolver(), id,
+                        MediaStore.Video.Thumbnails.MINI_KIND, null);
+                return thumb;
+            }
+            thumb = MediaStore.Images.Thumbnails.getThumbnail(
                     appContext.getContentResolver(), id,
                     MediaStore.Images.Thumbnails.MINI_KIND, null);
             if (thumb != null) return thumb;

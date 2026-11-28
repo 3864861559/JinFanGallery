@@ -79,7 +79,7 @@ public class GalleryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                     (MediaStoreHelper.HeaderEntry) items.get(position);
             ((HeaderHolder) holder).date.setText(header.label);
             ((HeaderHolder) holder).count.setText(
-                    String.format(Locale.getDefault(), "%d 张", header.count));
+                    String.format(Locale.getDefault(), "%d 项", header.count));
             return;
         }
 
@@ -87,8 +87,17 @@ public class GalleryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         MediaStoreHelper.PhotoEntry entry =
                 (MediaStoreHelper.PhotoEntry) items.get(position);
 
-        ph.image.setTag(entry.id);
-        bindThumbnail(ph.image, entry.id);
+        ph.image.setTag(entry.cacheKey());
+        bindThumbnail(ph.image, entry);
+
+        if (entry.video) {
+            ph.playBadge.setVisibility(View.VISIBLE);
+            ph.duration.setVisibility(View.VISIBLE);
+            ph.duration.setText(formatDuration(entry.durationMs));
+        } else {
+            ph.playBadge.setVisibility(View.GONE);
+            ph.duration.setVisibility(View.GONE);
+        }
 
         ph.itemView.setOnClickListener(v -> {
             if (clickListener != null) clickListener.onPhotoClick(entry);
@@ -102,14 +111,23 @@ public class GalleryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         });
     }
 
-    private void bindThumbnail(ImageView image, long id) {
-        android.graphics.Bitmap cached = loader.getCached(id);
+    private void bindThumbnail(ImageView image, MediaStoreHelper.PhotoEntry entry) {
+        android.graphics.Bitmap cached = loader.getCached(entry);
         if (cached != null) {
             image.setImageBitmap(cached);
         } else {
             image.setImageDrawable(null);
-            loader.load(image, id);
+            loader.load(image, entry);
         }
+    }
+
+    private static String formatDuration(long ms) {
+        long total = Math.max(0, ms) / 1000;
+        if (total >= 3600) {
+            return String.format(Locale.getDefault(), "%d:%02d:%02d",
+                    total / 3600, (total % 3600) / 60, total % 60);
+        }
+        return String.format(Locale.getDefault(), "%d:%02d", total / 60, total % 60);
     }
 
     @Override
@@ -130,10 +148,14 @@ public class GalleryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
     static class PhotoHolder extends RecyclerView.ViewHolder {
         final ImageView image;
+        final ImageView playBadge;
+        final TextView duration;
 
         PhotoHolder(View v) {
             super(v);
             image = v.findViewById(R.id.iv_photo);
+            playBadge = v.findViewById(R.id.iv_play_badge);
+            duration = v.findViewById(R.id.tv_duration);
             // GPU 硬件圆角剪裁，不使用 Bitmap 遮罩，降低过度绘制
             image.setClipToOutline(true);
             image.setOutlineProvider(new android.view.ViewOutlineProvider() {

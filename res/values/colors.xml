@@ -16,4 +16,12 @@
 
     <!-- 3D Touch 背景遮罩 -->
     <color name="scrim">#44000000</color>
+
+    <!-- 视频播放页 -->
+    <color name="video_bg">#FF000000</color>
+    <color name="video_pill">#F2FFFFFF</color>
+    <color name="video_icon">#FF1A1A1A</color>
+    <color name="video_icon_dim">#99AAAAAA</color>
+    <color name="video_track">#2E000000</color>
+    <color name="video_scrim">#66000000</color>
 </resources>
