@@ -25,10 +25,11 @@
 
         <ImageButton
             android:id="@+id/btn_video_back"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:background="@drawable/bg_circle_scrim"
-            android:padding="8dp"
+            android:layout_width="42dp"
+            android:layout_height="42dp"
+            android:background="@drawable/bg_circle_light"
+            android:elevation="2dp"
+            android:padding="9dp"
             android:src="@drawable/ic_video_back"
             android:contentDescription="@string/video_back" />
 
